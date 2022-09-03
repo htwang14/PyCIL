@@ -74,12 +74,12 @@ class DER(BaseLearner):
             test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
         )
 
-        if len(self._multiple_gpus) > 1:
-            self._network = nn.DataParallel(self._network, self._multiple_gpus)
+        # if len(self._multiple_gpus) > 1:
+        self._network = nn.DataParallel(self._network, self._multiple_gpus)
         self._train(self.train_loader, self.test_loader)
         self.build_rehearsal_memory(data_manager, self.samples_per_class)
-        if len(self._multiple_gpus) > 1:
-            self._network = self._network.module
+        # if len(self._multiple_gpus) > 1:
+        self._network = self._network.module
 
     def train(self):
         self._network.train()
@@ -112,12 +112,12 @@ class DER(BaseLearner):
                 optimizer=optimizer, milestones=milestones, gamma=lrate_decay
             )
             self._update_representation(train_loader, test_loader, optimizer, scheduler)
-            if len(self._multiple_gpus) > 1:
-                self._network.module.weight_align(
-                    self._total_classes - self._known_classes
-                )
-            else:
-                self._network.weight_align(self._total_classes - self._known_classes)
+            # if len(self._multiple_gpus) > 1:
+            self._network.module.weight_align(
+                self._total_classes - self._known_classes
+            )
+            # else:
+            #     self._network.weight_align(self._total_classes - self._known_classes)
 
     def _init_train(self, train_loader, test_loader, optimizer, scheduler):
         prog_bar = tqdm(range(init_epoch))
