@@ -20,25 +20,17 @@ def train(args):
 
 def _train(args):
 
-    logs_name = "logs/{}/".format(args["model_name"])
-    if not os.path.exists(logs_name):
-        os.makedirs(logs_name)
+    exp_str = "B%d-I%d_e%d-%d" % (args["init_cls"], args["increment"], args["init_epoch"], args["epochs"])
+    
+    save_dir = os.path.join("results", args["model_name"], args["dataset"], args["convnet_type"], exp_str)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
 
-    logfilename = "logs/{}/{}_{}_{}_{}_{}_{}_{}".format(
-        args["model_name"],
-        args["prefix"],
-        args["seed"],
-        args["model_name"],
-        args["convnet_type"],
-        args["dataset"],
-        args["init_cls"],
-        args["increment"],
-    )
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(filename)s] => %(message)s",
         handlers=[
-            logging.FileHandler(filename=logfilename + ".log"),
+            logging.FileHandler(filename=os.path.join(save_dir, "train.log")),
             logging.StreamHandler(sys.stdout),
         ],
     )
@@ -64,6 +56,8 @@ def _train(args):
         model.incremental_train(data_manager)
         cnn_accy, nme_accy = model.eval_task()
         model.after_task()
+
+        torch.save(model._network, os.path.join(save_dir, 'task%d.pth' % task))
 
         if nme_accy is not None:
             logging.info("CNN: {}".format(cnn_accy["grouped"]))

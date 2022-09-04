@@ -12,14 +12,12 @@ from utils.toolkit import count_parameters, target2onehot, tensor2numpy
 
 EPSILON = 1e-8
 
-init_epoch = 200
 init_lr = 0.1
 init_milestones = [60, 120, 170]
 init_lr_decay = 0.1
 init_weight_decay = 0.0005
 
 
-epochs = 170
 lrate = 0.1
 milestones = [80, 120, 150]
 lrate_decay = 0.1
@@ -33,6 +31,7 @@ class DER(BaseLearner):
     def __init__(self, args):
         super().__init__(args)
         self._network = DERNet(args["convnet_type"], False)
+        self.args = args
 
     def after_task(self):
         self._known_classes = self._total_classes
@@ -120,7 +119,7 @@ class DER(BaseLearner):
             #     self._network.weight_align(self._total_classes - self._known_classes)
 
     def _init_train(self, train_loader, test_loader, optimizer, scheduler):
-        prog_bar = tqdm(range(init_epoch))
+        prog_bar = tqdm(range(self.args["init_epoch"]))
         for _, epoch in enumerate(prog_bar):
             self.train()
             losses = 0.0
@@ -146,7 +145,7 @@ class DER(BaseLearner):
                 info = "Task {}, Epoch {}/{} => Loss {:.3f}, Train_accy {:.2f}".format(
                     self._cur_task,
                     epoch + 1,
-                    init_epoch,
+                    self.args["init_epoch"],
                     losses / len(train_loader),
                     train_acc,
                 )
@@ -155,7 +154,7 @@ class DER(BaseLearner):
                 info = "Task {}, Epoch {}/{} => Loss {:.3f}, Train_accy {:.2f}, Test_accy {:.2f}".format(
                     self._cur_task,
                     epoch + 1,
-                    init_epoch,
+                    self.args["init_epoch"],
                     losses / len(train_loader),
                     train_acc,
                     test_acc,
@@ -165,7 +164,7 @@ class DER(BaseLearner):
         logging.info(info)
 
     def _update_representation(self, train_loader, test_loader, optimizer, scheduler):
-        prog_bar = tqdm(range(epochs))
+        prog_bar = tqdm(range(self.args["epochs"]))
         for _, epoch in enumerate(prog_bar):
             self.train()
             losses = 0.0
@@ -204,7 +203,7 @@ class DER(BaseLearner):
                 info = "Task {}, Epoch {}/{} => Loss {:.3f}, Loss_clf {:.3f}, Loss_aux {:.3f}, Train_accy {:.2f}, Test_accy {:.2f}".format(
                     self._cur_task,
                     epoch + 1,
-                    epochs,
+                    self.args["epochs"],
                     losses / len(train_loader),
                     losses_clf / len(train_loader),
                     losses_aux / len(train_loader),
@@ -215,7 +214,7 @@ class DER(BaseLearner):
                 info = "Task {}, Epoch {}/{} => Loss {:.3f}, Loss_clf {:.3f}, Loss_aux {:.3f}, Train_accy {:.2f}".format(
                     self._cur_task,
                     epoch + 1,
-                    epochs,
+                    self.args["epochs"],
                     losses / len(train_loader),
                     losses_clf / len(train_loader),
                     losses_aux / len(train_loader),
